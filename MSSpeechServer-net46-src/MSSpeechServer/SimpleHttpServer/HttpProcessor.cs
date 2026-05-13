@@ -203,7 +203,7 @@ namespace SimpleHttpServer
             string protocolVersion = tokens[2];
 
             //Read Headers
-            Dictionary<string, string> headers = new Dictionary<string, string>();
+            Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             string line;
             while ((line = Readline(inputStream)) != null)
             {
@@ -232,13 +232,23 @@ namespace SimpleHttpServer
             if (headers.ContainsKey("Content-Length"))
             {
                 int totalBytes = Convert.ToInt32(headers["Content-Length"]);
+                if (totalBytes > MAX_POST_SIZE)
+                {
+                    throw new Exception("POST content too large");
+                }
+
                 int bytesLeft = totalBytes;
                 byte[] bytes = new byte[totalBytes];
-               
+
                 while(bytesLeft > 0)
                 {
                     byte[] buffer = new byte[bytesLeft > 1024? 1024 : bytesLeft];
                     int n = inputStream.Read(buffer, 0, buffer.Length);
+                    if (n <= 0)
+                    {
+                        throw new Exception("client disconnected while reading request body");
+                    }
+
                     buffer.CopyTo(bytes, totalBytes - bytesLeft);
 
                     bytesLeft -= n;
