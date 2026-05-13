@@ -244,7 +244,7 @@ namespace SimpleHttpServer
                     bytesLeft -= n;
                 }
 
-                content = Encoding.ASCII.GetString(bytes);
+                content = Encoding.UTF8.GetString(bytes);
             }
 
 

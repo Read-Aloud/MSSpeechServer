@@ -31,6 +31,12 @@ namespace MSSpeechServer
                         Callable = SetTTSHandler,
                         UrlRegex = "^\\/SetTTS(?:\\?.*)?$",
                         Method = "GET"
+                    },
+                    new Route()
+                    {
+                        Callable = SetTTSHandler,
+                        UrlRegex = "^\\/SetTTS(?:\\?.*)?$",
+                        Method = "POST"
                     }
                 };
 
@@ -64,39 +70,19 @@ namespace MSSpeechServer
 
             private static HttpResponse SetTTSHandler(HttpRequest request)
             {
-                // 获取 URL 中的参数
-                string queryString = request.Url;
-                string decodedQueryString = WebUtility.UrlDecode(queryString);
-
-                // 初始化变量
+                Dictionary<string, string> queryParameters = GetQueryParameters(request.Url);
                 string text = null;
                 string voiceName = null;
 
-                // 手动分割参数和值
-                string[] parts = decodedQueryString.Split('?');
-                if (parts.Length > 1)
-                {
-                    string[] paramParts = parts[1].Split('&');
-                    foreach (string paramPart in paramParts)
-                    {
-                        string[] keyValue = paramPart.Split('=');
-                        if (keyValue.Length == 2)
-                        {
-                            string key = keyValue[0];
-                            string value = keyValue[1];
-                            Console.WriteLine($"{key}: {value}");
+                queryParameters.TryGetValue("voiceName", out voiceName);
 
-                            // 检查键值对的键，分别赋值给 text 和 voiceName
-                            if (key.Equals("text"))
-                            {
-                                text = value;
-                            }
-                            else if (key.Equals("voiceName"))
-                            {
-                                voiceName = value;
-                            }
-                        }
-                    }
+                if (request.Method == "POST")
+                {
+                    text = request.Content;
+                }
+                else
+                {
+                    queryParameters.TryGetValue("text", out text);
                 }
 
                 // 检查参数是否为空
@@ -201,6 +187,38 @@ namespace MSSpeechServer
                     ReasonPhrase = "OK",
                     StatusCode = "200"
                 };
+            }
+
+            private static Dictionary<string, string> GetQueryParameters(string url)
+            {
+                Dictionary<string, string> parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                int queryStart = url.IndexOf('?');
+                if (queryStart < 0 || queryStart == url.Length - 1)
+                {
+                    return parameters;
+                }
+
+                string queryString = url.Substring(queryStart + 1);
+                string[] pairs = queryString.Split('&');
+                foreach (string pair in pairs)
+                {
+                    if (string.IsNullOrEmpty(pair))
+                    {
+                        continue;
+                    }
+
+                    int separator = pair.IndexOf('=');
+                    string key = separator >= 0 ? pair.Substring(0, separator) : pair;
+                    string value = separator >= 0 ? pair.Substring(separator + 1) : "";
+
+                    key = WebUtility.UrlDecode(key);
+                    value = WebUtility.UrlDecode(value);
+                    Console.WriteLine($"{key}: {value}");
+
+                    parameters[key] = value;
+                }
+
+                return parameters;
             }
         }
 
