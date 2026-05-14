@@ -164,7 +164,14 @@ namespace MSSpeechServer
                             // 将文本转换为语音并保存为 WAV 格式的字节数组
                             var memoryStream = new MemoryStream();
                             synth.SetOutputToWaveStream(memoryStream);
-                            synth.Speak(text);
+                            if (IsSsml(text))
+                            {
+                                synth.SpeakSsml(text);
+                            }
+                            else
+                            {
+                                synth.Speak(text);
+                            }
                             memoryStream.Position = 0;
 
                             // 构造响应
@@ -219,6 +226,11 @@ namespace MSSpeechServer
                 }
 
                 return parameters;
+            }
+
+            private static bool IsSsml(string text)
+            {
+                return text.TrimStart().StartsWith("<speak", StringComparison.OrdinalIgnoreCase);
             }
         }
 
