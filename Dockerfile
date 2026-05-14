@@ -27,7 +27,7 @@ COPY bash/auto_xvfb.sh /usr/bin/auto_xvfb
 RUN mv /bin/sh /bin/sh.old && \
     ln -s /bin/bash /bin/sh && \
     bash /usr/bin/auto_xvfb && \
-    winetricks unattended win8 nocrashdialog msxml3 dotnet46 
+    winetricks unattended win8 nocrashdialog msxml3 msxml6 dotnet46 
 
 
 COPY libs/ /wine32/drive_c/libs
