@@ -7,6 +7,7 @@ using System.Threading;
 using System.IO;
 using Newtonsoft.Json;
 using Microsoft.Speech.Synthesis;
+using System.Runtime.InteropServices;
 
 namespace MSSpeechServer
 {
@@ -236,6 +237,16 @@ namespace MSSpeechServer
 
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.FirstChanceException += (sender, eventArgs) =>
+            {
+                if (eventArgs.Exception is COMException comEx)
+                {
+                    Console.WriteLine("First chance COMException: " + comEx.Message);
+                    Console.WriteLine("ErrorCode: " + comEx.ErrorCode);
+                    Console.WriteLine("StackTrace: " + comEx.StackTrace);
+                }
+            };
+
             HttpServer httpServer = new HttpServer(8080, Routes.GET);
             Console.WriteLine("HTTP server is started and waiting for connections...");
             Thread thread = new Thread(new ThreadStart(httpServer.Listen));

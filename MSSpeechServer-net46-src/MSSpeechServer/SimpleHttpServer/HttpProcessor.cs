@@ -134,16 +134,6 @@ namespace SimpleHttpServer
         protected virtual HttpResponse RouteRequest(Stream inputStream, Stream outputStream, HttpRequest request)
         {
 
-            AppDomain.CurrentDomain.FirstChanceException += (sender, eventArgs) =>
-            {
-                if (eventArgs.Exception is COMException comEx)
-                {
-                    Console.WriteLine("First chance COMException: " + comEx.Message);
-                    Console.WriteLine("ErrorCode: " + comEx.ErrorCode);
-                    Console.WriteLine("StackTrace: " + comEx.StackTrace);
-                }
-            };
-
             List<Route> routes = this.Routes.Where(x => Regex.Match(request.Url, x.UrlRegex).Success).ToList();
 
             if (!routes.Any())
